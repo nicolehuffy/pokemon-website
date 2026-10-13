@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pokémon Team Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@400;600;800&family=Pixelify+Sans:wght@500;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css"></head><body><main>
+<header><h1>Pokémon Team Builder</h1>
+<p>Pick a game, pick a starter, and get a step-by-step team of six that covers each other's weak spots. No Pokémon experience needed. Every term is explained.</p><div class="row"><button onclick="openSearch()">📖 Search &amp; Pokédex</button><select id="skin" onchange="setSkin(this.value,1)" aria-label="Theme"><option value="diamond">🎮 Diamond</option><option value="heartgold">🎮 HeartGold</option><option value="soulsilver">🎮 SoulSilver</option><option value="firered">🎮 FireRed</option><option value="leafgreen">🎮 LeafGreen</option><option value="ruby">🎮 Ruby</option><option value="sapphire">🎮 Sapphire</option><option value="plain">🎮 Plain</option></select><button id="stopbtn" onclick="stopServer()">⏻ Stop server &amp; close</button></div></header>
+
+<section><h2>Learn the basics (30 seconds)</h2>
+<details><summary>What are types and weaknesses?</summary><p class="sub">Every Pokémon and every attack has a type (Fire, Water, Grass…). Some types beat others: Water puts out Fire. If a Pokémon is <b>weak</b> to a type, attacks of that type do double (×2) or even quadruple (×4) damage. <b>Resist</b> means they take half. <b>Immune</b> means zero. A good team makes sure one enemy type can't beat everybody.</p></details>
+<details><summary>What are stats, natures and EVs?</summary><p class="sub"><b>Stats</b>: HP (health), Attack/Defense (physical moves), Sp. Atk/Sp. Def (special moves), Speed (who moves first). <b>Nature</b>: a personality that raises one stat 10% and lowers another 10%. Choose one that boosts what your Pokémon is good at. <b>EVs</b>: bonus points you earn by battling. You can put up to 510 total, max 252 in one stat. Put them into the two stats your Pokémon uses most. Before Gen 3 games, EVs work a little differently, but the same plan is still a good guide.</p></details>
+<details><summary>What do "heavy hitter", "fast" and "tank" mean?</summary><p class="sub"><b>Heavy hitter</b>: deals huge damage. <b>Fast</b>: usually moves first, so it hits before the enemy can. <b>Tank</b>: lots of HP and defense, so it soaks up attacks. A balanced team has a mix.</p></details></section>
+
+<section><h2>Step 1: Choose your game and starter</h2>
+<p class="sub">Choose the game generation, then your starter. Not into starters? Pick any Pokémon you love from the dropdown. Shown are final evolutions, which is what they grow into.</p>
+<div class="row"><label for="game"><b>Game:</b></label><select id="game" onchange="setGame(+this.value)"></select></div><p class="small" id="stnote"></p>
+<div class="row"><label for="prog"><b>Story progress:</b></label><select id="prog" onchange="stage=+this.value;recN=6;render()"></select></div>
+<div class="row"><b>Mode:</b><button id="mR" onclick="setComp(0)">Realistic (playing the game)</button><button id="mC" onclick="setComp(1)">Competitive</button></div>
+<p class="small" id="modehelp"></p>
+<div class="row" id="starters"></div>
+<div class="row"><label for="q"><b>Or search any Pokémon:</b></label><input id="q" placeholder="Type a name…" oninput="any()"></div><div class="row" id="qres"></div>
+<div class="row"><label><input type="checkbox" id="nolg" checked onchange="any();render()"> Hide legendary Pokémon</label> <label><input type="checkbox" id="fin" checked onchange="any();render()"> Final evolutions only</label></div></section>
+
+<section id="teams"><h2>Saved teams</h2><p class="sub">Name your team and save it. Pick a saved team below to load and edit it later.</p><div class="row"><input id="tname" placeholder="Team name"><button class="add" onclick="saveTeam()">Save team</button><button onclick="newTeam()">New team</button></div><div class="row"><select id="tsel" onchange="loadTeam(this.value)"></select><button onclick="delTeam()">Delete</button></div><div class="small" id="tmsg"></div></section>
+<section><h2>Your team <span class="slots" id="slots"></span></h2>
+<p class="sub">For each Pokémon: its types, what it's good and bad against, a suggested nature and EVs, and how to get it.</p>
+<div id="summary"></div><div class="grid" id="team"></div></section>
+
+<section><h2>Team report card</h2><p class="sub">A rating of your current team, with strengths and advice. Buttons in the advice jump to matching suggestions.</p><div id="rate"></div></section>
+<section id="find"><h2>Step 2: Find your next teammate</h2>
+<div class="tabs" role="tablist"><button id="tabV" role="tab" onclick="setTab('v')">✨ Smart picks</button><button id="tabS" role="tab" onclick="setTab('s')">🔍 Search &amp; Pokédex</button></div>
+<div id="paneV">
+<p class="sub">Choose what you need. "Fix my weaknesses" ranks Pokémon by how well they cover what your team is weak to.</p>
+<div class="row" id="modes"></div><div id="recs"></div>
+<details class="subsec" open><summary><h3>Pokémon matching your suggested types</h3></summary><p class="sub">Taken from the top types in your report card: Pokémon of those types you can get at this point in the game.</p><div id="typerecs"></div></details>
+</div>
+<div id="paneS" hidden>
+<p class="sub">Look up any Pokémon by name, type and strength. Type what you want in plain words, like <b>defensive water</b>, <b>physical electric</b>, <b>fast fire</b>, <b>special defense grass</b> or a name like <b>Garchomp</b>. Or use the filters below.</p>
+<div class="row"><input id="sq" type="search" placeholder="e.g. defensive water" oninput="sRun()" aria-label="Search Pokémon" style="flex:1;min-width:200px"><button onclick="sReset()">Clear</button></div>
+<div class="row"><b>Type:</b><select id="st1" onchange="sRun()" aria-label="First type"></select><select id="st2" onchange="sRun()" aria-label="Second type"></select></div>
+<div class="row" id="sroles"></div>
+<div class="row"><label><b>Show:</b> <select id="sscope" onchange="sRun()"><option value="now">Catchable by my story progress</option><option value="game" selected>Anywhere in my game</option><option value="all">Every Pokémon (full Pokédex)</option></select></label><label><b>Sort:</b> <select id="ssort" onchange="sRun()"></select></label></div>
+<div class="row"><label><input type="checkbox" id="sfin" onchange="sRun()"> Final evolutions only</label><label><input type="checkbox" id="slg" onchange="sRun()"> Include legendary &amp; mythical</label><label><input type="checkbox" id="srf" checked onchange="sRun()"> Include regional forms</label></div>
+<div id="sinfo" class="small"></div><div id="sres"></div>
+</div></section>
+
+<section><h2>Step 3: Plan ahead</h2><p class="sub">Pokémon you can catch later in the game that would help your team. Press "Plan to catch" to save them to your list (saved with your team).</p>
+<details class="subsec" open><summary><h3>Coming up later in the game</h3></summary><div id="ahead"></div></details>
+<details class="subsec" open><summary><h3>My catch-later list</h3></summary><div id="wishl"></div></details></section>
+<section><h2>Type effectiveness guide</h2>
+<p class="sub">Tap a type to see how it fights.</p><div class="row" id="tchips"></div><div id="tinfo" class="sub"></div></section>
+<p class="small">Data: stats, types and evolutions from PokéAPI; route-by-route catch locations for every main game (including Let's Go, Brilliant Diamond / Shining Pearl, Legends: Arceus and Scarlet / Violet) from PokéAPI and PokémonDB. Story timing is worked out from route order and wild levels, so it can be off by a gym in a few spots.</p>
+</main>
+<script src="data/pokemon-data.js"></script>
+<script src="app.js"></script>
+</body></html>
